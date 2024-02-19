@@ -146,7 +146,7 @@ class StorageClient:
         
         file_db_id = file_data.get("fileId", None)
         if file_db_id is None:
-            print("Error sending file data.")
+            print(file_data.get("error", None))
             return None
 
         print("File data sent successfully.")
