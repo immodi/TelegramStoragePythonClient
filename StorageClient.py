@@ -150,7 +150,7 @@ class StorageClient:
             return None
 
         print("File data sent successfully.")
-        chuncks_directory = self.split_file(file_path, 1024*1024*25, str(file_db_id))
+        chuncks_directory = self.split_file(file_path, 1024*1024*20, str(file_db_id))
         
         if chuncks_directory is None: 
             print("Error splitting file.")
