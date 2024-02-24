@@ -6,9 +6,9 @@ import glob
 
 class StorageClient:
     def __init__(self, api_url:str=None):
-        self.api_url = api_url or "https://freetelebot.pythonanywhere.com"
+        self.api_url = api_url or "http://127.0.0.1:8000"
 
-    def add_file(self, file_name: str, file_size: int, file_mime_type: str) -> dict:
+    def add_file(self, file_name: str, file_size: int, file_mime_type: str, directory_path: str) -> dict:
         """
         Add a file data to the storage BUT doesn't upload the chunks,
 
@@ -16,11 +16,13 @@ class StorageClient:
         - file_name: The name of the file to upload.
         - file_size: The size of the file in bytes.
         - file_mime_type: The MIME type of the file.
+        - directory_path: The path of the directory to upload the file to.
         """
         data = {
             "name": file_name,
             "mimeType": file_mime_type,
-            "size": file_size
+            "size": file_size,
+            "path": directory_path
         }
 
         r = requests.post(self.api_url + '/file', data=data)
@@ -46,15 +48,47 @@ class StorageClient:
         response = r.json()
         return response
     
-    def get_all_files_data(self) -> dict:
+    def get_current_directory_contents(self, directory_id: int=1) -> list:
         """
-        Get all the files data from the storage.
+        Get current directory contents from the storage (defaults to root).
         """
         r = requests.get(self.api_url)
 
         response = r.json()
         return response
     
+    def get_direcrory_data(self, directory_path: int=None) -> dict | list:
+        """
+        Get a directory data or all directorys data from the storage.
+
+        Parameters:
+        - directory_path: The path of the directory to get the data of (optional).
+        """
+        if directory_path:
+            params = {
+                "directoryPath": directory_path
+            }
+        else: params = {}
+
+        r = requests.get(self.api_url + '/directory', params=params)
+        response = r.json()
+        return response
+
+    def make_new_directory(self, directory_path: str) -> dict:
+        """
+        Create a new directory in the storage.
+
+        Parameters:
+        - directory_path: The path of the directory to create.
+        """
+        data = {
+            "dirPath": directory_path
+        }
+
+        r = requests.post(self.api_url + '/directory', params=data)
+        response = r.json()
+        return response
+
     def split_file(self, input_file_path: str, chunk_size: int, output_directory: str) -> str | None:
         """
         Split a file into chunks.
@@ -131,18 +165,19 @@ class StorageClient:
         mime_type, encoding = mimetypes.guess_type(file_path)
         return mime_type
 
-    def upload_file(self, file_path: str) -> dict | None:
+    def upload_file(self, file_local_path: str, directory_path: str="~") -> dict | None:
         """
         Upload a file to the storage.
 
         Parameters:
-        - file_path: The path to the file to upload.
+        - file_local_path: The path to the file to upload.
+        - directory_path: The path to the directory to upload the file to.
         """
-        file_size = self.get_file_size_in_bytes(file_path)
-        file_mime_type = self.get_mime_type(file_path)
-        file_name = os.path.basename(file_path)
+        file_size = self.get_file_size_in_bytes(file_local_path)
+        file_mime_type = self.get_mime_type(file_local_path)
+        file_name = os.path.basename(file_local_path)
         
-        file_data = self.add_file(file_name, file_size, file_mime_type)
+        file_data = self.add_file(file_name, file_size, file_mime_type, directory_path)
         
         file_db_id = file_data.get("fileId", None)
         if file_db_id is None:
@@ -150,7 +185,7 @@ class StorageClient:
             return None
 
         print("File data sent successfully.")
-        chuncks_directory = self.split_file(file_path, 1024*1024*20, str(file_db_id))
+        chuncks_directory = self.split_file(file_local_path, 1024*1024*20, str(file_db_id))
         
         if chuncks_directory is None: 
             print("Error splitting file.")
