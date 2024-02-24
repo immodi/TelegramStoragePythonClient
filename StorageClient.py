@@ -207,7 +207,7 @@ class StorageClient:
         try:
             t_range = trange(len(chunks_list), desc='Loading...', leave=True)
             for chunk_index in t_range:
-                t_range.set_description("Bar desc (file %i)" % chunk_index)
+                t_range.set_description("Currently uploading (chunk %i)" % chunk_index)
                 t_range.refresh() # to show immediately the update
                 data = {
                     "fileId": parent_file_id,
@@ -233,7 +233,7 @@ class StorageClient:
 
         t_range = trange(len(chunks_id_list), desc='Loading...', leave=True)
         for chunk_data_index in t_range:
-            t_range.set_description("Bar desc (file %i)" % chunk_data_index)
+            t_range.set_description("Currently downloading (chunk %i)" % chunk_data_index)
             t_range.refresh() # to show immediately the update
             chunk_id = chunks_id_list[chunk_data_index].get("chunkId")
             chunk_name = chunks_id_list[chunk_data_index].get("chunkName")
