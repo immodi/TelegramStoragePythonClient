@@ -31,12 +31,12 @@ class StorageClient:
         response = r.json()
         return response
 
-    def get_file_data(self, file_name: str) -> dict:
+    def get_file_data(self, file_path: str) -> dict:
         """
         Get the file data from the storage.
 
         Parameters:
-        - file_name: The name of the file to get the data of.
+        - file_path: The path of the file to get the data of.
 
         Returns:
         - fileId: The ID of the file.
@@ -44,7 +44,7 @@ class StorageClient:
         - chunksIds: A list of the database IDs of the chunks.
         """
         r = requests.get(self.api_url + '/file', params={
-            "fileName": file_name
+            "filePath": file_path
         })
 
         response = r.json()
@@ -54,7 +54,9 @@ class StorageClient:
         """
         Get current directory contents from the storage (defaults to root).
         """
-        r = requests.get(self.api_url)
+        r = requests.get(self.api_url, params={
+            "dirId": directory_id
+        })
 
         response = r.json()
         return response
@@ -218,15 +220,15 @@ class StorageClient:
             return True
         except Exception: return False 
 
-    def download_file(self, file_name: str) -> str | None:
+    def download_file(self, file_path: str) -> str | None:
         """
         Download a file from the storage.
 
         Parameters:
-        - file_name: The exact name of the file to download.
+        - file_path: The path to the file to download.
         """
-        
-        file_data = self.get_file_data(file_name)
+        file_name = os.path.basename(file_path)
+        file_data = self.get_file_data(file_path)
         print("Currently downloading => ", file_name)
         chunks_id_list = file_data.get("chunksIds")
         output_directory = file_name.split(".")[0]
