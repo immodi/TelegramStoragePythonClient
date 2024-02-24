@@ -3,6 +3,8 @@ from pathlib import Path
 import os
 import mimetypes
 import glob
+from tqdm import trange
+from time import sleep
 
 class StorageClient:
     def __init__(self, api_url:str=None):
@@ -203,12 +205,15 @@ class StorageClient:
     def handle_uploading(self, chunks_dir_path: str, parent_file_id: int) -> bool:    
         chunks_list = glob.glob(f"{chunks_dir_path}/*")
         try:
-            for chunk in chunks_list:
+            t_range = trange(len(chunks_list), desc='Loading...', leave=True)
+            for chunk_index in t_range:
+                t_range.set_description("Bar desc (file %i)" % chunk_index)
+                t_range.refresh() # to show immediately the update
                 data = {
                     "fileId": parent_file_id,
                 }
 
-                with open(chunk, 'rb') as f:
+                with open(chunks_list[chunk_index], 'rb') as f:
                     r = requests.post(self.api_url, data=data, files={'file': f})   
             return True
         except Exception: return False 
@@ -226,9 +231,12 @@ class StorageClient:
         output_directory = file_name.split(".")[0]
         if not Path.exists(Path(output_directory)): os.makedirs(output_directory)
 
-        for chunk_data in chunks_id_list:
-            chunk_id = chunk_data.get("chunkId")
-            chunk_name = chunk_data.get("chunkName")
+        t_range = trange(len(chunks_id_list), desc='Loading...', leave=True)
+        for chunk_data_index in t_range:
+            t_range.set_description("Bar desc (file %i)" % chunk_data_index)
+            t_range.refresh() # to show immediately the update
+            chunk_id = chunks_id_list[chunk_data_index].get("chunkId")
+            chunk_name = chunks_id_list[chunk_data_index].get("chunkName")
             r = requests.get(self.api_url + '/download', params={
                 "chunkId": chunk_id
             })
