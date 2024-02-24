@@ -227,7 +227,7 @@ class StorageClient:
         """
         
         file_data = self.get_file_data(file_name)
-        print("Currently downloading => ", file_data)
+        print("Currently downloading => ", file_name)
         chunks_id_list = file_data.get("chunksIds")
         output_directory = file_name.split(".")[0]
         if not Path.exists(Path(output_directory)): os.makedirs(output_directory)
