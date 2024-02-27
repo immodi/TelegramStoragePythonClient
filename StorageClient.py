@@ -61,7 +61,7 @@ class StorageClient:
         response = r.json()
         return response
     
-    def get_direcrory_data(self, directory_path: int=None) -> dict | list:
+    def get_direcrory_data(self, directory_path: str=None) -> dict | list:
         """
         Get a directory data or all directorys data from the storage.
 
@@ -70,7 +70,7 @@ class StorageClient:
         """
         if directory_path:
             params = {
-                "directoryPath": directory_path
+                "dirPath": directory_path
             }
         else: params = {}
 
